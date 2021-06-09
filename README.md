@@ -10,14 +10,16 @@ Methods and results are detailed below, with comments describing missing informa
 
 ## Analysis overview
 
-* <details markdown="1">
-  <summary>[Differential gene expression](#dge)</summary>
-  </details>
+* [Differential gene expression](#dge)
 * [Differential transcript usage](#dtu)
 * [Differential exon usage](#deu)
 * [Differential intron usage](#diu)
 
 # DGE
+
+## Methods
+
+## Comments
 
 # DTU
 
