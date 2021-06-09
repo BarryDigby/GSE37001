@@ -1,5 +1,6 @@
-# GSE37001
-RNA-Seq Analysis - Jeremy Leipzig M6A
+<p markdown="1" align="center">
+  <img src="assets/images/M6a_paper.png" alt="paper_header" width="500">
+</p>
 
 <details markdown="1">
 <summary>Analysis Summary</summary>
