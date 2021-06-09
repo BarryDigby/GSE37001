@@ -10,10 +10,10 @@ Methods and results are detailed below, with comments describing missing informa
 
 ### Analysis overview
 
-* Differential gene expression(#dge)
-* Differential transcript usage(#dtu)
-* Differential exon usage(#deu)
-* Differential intron usage(#diu)
+* [Differential gene expression](#dge)
+* [Differential transcript usage](#dtu)
+* [Differential exon usage](#deu)
+* [Differential intron usage](#diu)
 
 ## DGE
 
