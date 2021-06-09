@@ -5,6 +5,10 @@
 <details markdown="1">
 <summary>Analysis Summary</summary>
 
+<details markdown="1">
+<summary>Will it indent?</summary>
+</details>
+
 * RNA-Seq Quantification
   * nf-core/rnaseq
 * Differential Gene Expression
