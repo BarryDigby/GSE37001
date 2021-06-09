@@ -10,15 +10,18 @@ Methods and results are detailed below, with comments describing missing informa
 
 ## Analysis overview
 
-* [Differential gene expression](#dge)
-* [Differential transcript usage](#dtu)
-* [Differential exon usage](#deu)
-* [Differential intron usage](#diu)
+* [Quantification](#quantification)
+* [Differentially expressed genes](#differentially-expressed-genes)
+* [Differentially expressed isoforms](#differentially-expressed-isoforms)
+* [Differentially expressed exons](#differentially-expressed-exons)
+* [Differentially expressed introns](#differentially-expressed-introns)
 
-# DGE
+# Quantification
 
-# DTU
+# Differentially expressed genes
 
-# DEU
+# Differentially expressed isoforms
 
-# DIU
+# Differentially expressed exons
+
+# Differentially expressed introns
