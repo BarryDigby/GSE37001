@@ -1,5 +1,5 @@
 <p markdown="1" align="center">
-  <img src="assets/images/M6a_paper.png" alt="paper_header" width="1000">
+  <img src="assets/images/M6a_paper.png" alt="paper_header">
 </p>
 
 <details markdown="1">
