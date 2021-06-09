@@ -11,6 +11,9 @@
 
 * RNA-Seq Quantification
   * nf-core/rnaseq
+    * <details markdown="1">
+      <summary>in bullets?</summary>
+      </details>
 * Differential Gene Expression
 * Differential Transcript Usage
 * Differential Exon Usage
