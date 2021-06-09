@@ -24,4 +24,11 @@ Methods and results are detailed below, with comments describing missing informa
 
 # Differentially expressed exons
 
+<details markdown="1">
+<summary>Prepare annotation</summary>
+```bash
+python /home/barry/R/x86_64-pc-linux-gnu-library/4.1/DEXSeq/python_scripts/dexseq_prepare_annotation.py Homo_sapiens.NCBI36.54.gtf Homo_sapiens.NCBI36.54.gff -r no
+```
+</details>
+
 # Differentially expressed introns
