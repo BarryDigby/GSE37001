@@ -17,10 +17,6 @@ Methods and results are detailed below, with comments describing missing informa
 
 # DGE
 
-## Methods
-
-## Comments
-
 # DTU
 
 # DEU
