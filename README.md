@@ -1,4 +1,4 @@
-## M6A robustness test
+# M6A robustness test
 
 <p markdown="1" align="center">
   <img src="assets/images/M6a_paper.png" alt="paper_header">
@@ -8,17 +8,19 @@ This repository contains the results of Differential Gene, Transcript, Exon and 
 
 Methods and results are detailed below, with comments describing missing information that would have aided the analysis from a reviewers perpective. The results from this repository are to be used in conjunction with a M6A analysis of HepG2 cells, to interrogate correlations between M6A peaks and differential gene/transcript/exon/intron usage.
 
-### Analysis overview
+## Analysis overview
 
-* [Differential gene expression](#dge)
+* <details markdown="1">
+  <summary>[Differential gene expression](#dge)</summary>
+  </details>
 * [Differential transcript usage](#dtu)
 * [Differential exon usage](#deu)
 * [Differential intron usage](#diu)
 
-## DGE
+# DGE
 
-## DTU
+# DTU
 
-## DEU
+# DEU
 
-## DIU
+# DIU
