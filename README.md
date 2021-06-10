@@ -19,7 +19,7 @@ Methods and results are detailed below for posterity, with comments describing m
 
 # Download data
 
-Raw sequencing data was downloaded using `SRAtools` `fastq-dump` via a singularity container. The nextflow script to download the reads is provided in `scripts/` and the set of commands used is given below:
+Raw sequencing data was downloaded using `SRAtools` `fastq-dump` via a singularity container. The nextflow script to download the reads is provided in [`scripts/`](https://github.com/BarryDigby/GSE37001/tree/main/scripts) and the set of commands used is given below:
 
 <details markdown="1">
 <summary>Download raw reads</summary>
