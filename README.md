@@ -48,7 +48,7 @@ gunzip Homo_sapiens.NCBI36.54.gtf.gz
 
 # Quantification
 
- RNA-Seq analysis was performed using `nf-core/rnaseq v3.1` with default parameters (except for the reference files provided). The metadata provided to `nf-core/rnaseq` is given below, of note the dataset is single-end and unstranded:
+ RNA-Seq analysis was performed using `nf-core/rnaseq v3.1` with default parameters (except for the reference files provided). The `samples.csv` file provided to `nf-core/rnaseq` is given below, of note the dataset is single-end and unstranded:
 
  | sample        | fastq_1                      | fastq_2 | strandedness |
  |---------------|------------------------------|---------|--------------|
@@ -62,7 +62,7 @@ gunzip Homo_sapiens.NCBI36.54.gtf.gz
 
  ```bash
 nextflow pull nf-core/rnaseq
-nextflow -bg run nf-core/rnaseq -profile singularity --input 'rna_samples.csv' --fasta 'assets/Homo_sapiens.NCBI36.54.dna.toplevel.fa' --gtf 'Homo_sapiens.NCBI36.54.gtf' --max_memory '62.GB' --max_cpus 16
+nextflow -bg run nf-core/rnaseq -profile singularity --input 'samples.csv' --fasta 'assets/Homo_sapiens.NCBI36.54.dna.toplevel.fa' --gtf 'Homo_sapiens.NCBI36.54.gtf' --max_memory '62.GB' --max_cpus 16
  ```
 
  </details>
