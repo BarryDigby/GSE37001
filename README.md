@@ -113,3 +113,47 @@ python /home/barry/R/x86_64-pc-linux-gnu-library/4.1/DEXSeq/python_scripts/dexse
 </details>
 
 # Differentially expressed introns
+
+The methods section of the paper states they used a customised in-house script to prepare introns for DESeq. I have decided to reformat the reference GTF file to contain introns (not exons) and use this as the starting point for a `DEXSeq` analysis. In theory, this should work the exact same, producing differentially expressed introns as outputs of the analysis. Any criticisms of the approach taken with the analysis are welcome!
+
+<details markdown="1">
+<summary>Extract introns from GTF</summary>
+
+```R
+library(GenomicFeatures)
+library(rtracklayer)
+txdb <- makeTxDbFromGFF('/data/projects/leipzig/introns/Homo_sapiens.NCBI36.54.gtf')
+introns <- intronicParts(txdb)
+rtracklayer::export(introns, "/data/projects/leipzig/introns/introns.gtf")
+```
+
+</details>
+
+Next, using a customised version of `DEXSeq` `prepare_annotations.py` (available in [`scripts/`](https://github.com/BarryDigby/GSE37001/tree/main/scripts)), produce a GFF file containing non-overlapping introns for `DEXSeq` analysis.
+
+<details markdown="1">
+<summary>Prepare (intron) annotations</summary>
+
+```bash
+sed 's/tx_name/transcript_id/g' introns.gtf > introns_rename.gtf
+python prepare_annotation_introns.py introns_rename.gtf introns.gff -r no
+```
+
+</details>
+
+Finally, use the sequencing BAM files in conjunction with `dexseq_count.py` to produce counts for each intron.
+
+<details markdown="1">
+<summary>Counting Reads</summary>
+
+```bash
+python /home/barry/R/x86_64-pc-linux-gnu-library/4.1/DEXSeq/python_scripts/dexseq_count.py introns.gff /data/projects/leipzig/results/star_salmon/METTL3_KD1.markdup.sorted.bam METTL3_KD1.txt -r pos -s no -f bam -a 0
+
+python /home/barry/R/x86_64-pc-linux-gnu-library/4.1/DEXSeq/python_scripts/dexseq_count.py introns.gff /data/projects/leipzig/results/star_salmon/METTL3_KD2.markdup.sorted.bam METTL3_KD2.txt -r pos -s no -f bam -a 0
+
+python /home/barry/R/x86_64-pc-linux-gnu-library/4.1/DEXSeq/python_scripts/dexseq_count.py introns.gff /data/projects/leipzig/results/star_salmon/Mock_control1.markdup.sorted.bam Mock_control1.txt -r pos -s no -f bam -a 0
+
+python /home/barry/R/x86_64-pc-linux-gnu-library/4.1/DEXSeq/python_scripts/dexseq_count.py introns.gff /data/projects/leipzig/results/star_salmon/Mock_control2.markdup.sorted.bam Mock_control2.txt -r pos -s no -f bam -a 0
+```
+
+</details>
