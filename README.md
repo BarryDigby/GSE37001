@@ -10,13 +10,14 @@ Methods and results are detailed below for posterity, with comments describing m
 
 ## Analysis overview
 
+* [Download data](#download-data)
 * [Quantification](#quantification)
 * [Differentially expressed genes](#differentially-expressed-genes)
 * [Differentially expressed isoforms](#differentially-expressed-isoforms)
 * [Differentially expressed exons](#differentially-expressed-exons)
 * [Differentially expressed introns](#differentially-expressed-introns)
 
-# Quantification
+# Download data
 
 Raw sequencing data was downloaded using `SRAtools` `fastq-dump` via a singularity container. The nextflow script to download the reads is provided in `scripts/` and the set of commands used is given below:
 
@@ -30,8 +31,24 @@ nextflow -bg run dl_sra.nf --sra_id 'SRP012096' -with-singularity 'sratoolkit.im
 
 </details>
 
+Reference genome and GTF files were prepared as per the paper, using `H. sapiens ENSEMBL release 54 (NCBI36/hg18)`.
 
- RNA-Seq analysis was performed using `nf-core/rnaseq v3.1` using default parameters. The metadata provided to `nf-core/rnaseq` is given below, of note the dataset is single-end and unstranded:
+<details markdown="1">
+<summary>Download raw reads</summary>
+
+```bash
+wget http://ftp.ensembl.org/pub/release-54/fasta/homo_sapiens/dna/Homo_sapiens.NCBI36.54.dna.toplevel.fa.gz
+guzip Homo_sapiens.NCBI36.54.dna.toplevel.fa.gz
+
+wget http://ftp.ensembl.org/pub/release-54/gtf/homo_sapiens/Homo_sapiens.NCBI36.54.gtf.gz
+gunzip Homo_sapiens.NCBI36.54.gtf.gz
+```
+
+</details>
+
+# Quantification
+
+ RNA-Seq analysis was performed using `nf-core/rnaseq v3.1` with default parameters (except for the reference files provided). The metadata provided to `nf-core/rnaseq` is given below, of note the dataset is single-end and unstranded:
 
  | sample        | fastq_1                      | fastq_2 | strandedness |
  |---------------|------------------------------|---------|--------------|
@@ -39,6 +56,17 @@ nextflow -bg run dl_sra.nf --sra_id 'SRP012096' -with-singularity 'sratoolkit.im
  | METTL3_KD2    | fastq/METTL3_KD2.fastq.gz    |         | unstranded   |
  | Mock_control1 | fastq/Mock_control1.fastq.gz |         | unstranded   |
  | Mock_control2 | fastq/Mock_control2.fastq.gz |         | unstranded   |
+
+ <details markdown="1">
+ <summary>Nextflow command</summary>
+
+ ```bash
+nextflow pull nf-core/rnaseq
+nextflow -bg run nf-core/rnaseq -profile singularity --input 'rna_samples.csv' --fasta 'assets/Homo_sapiens.NCBI36.54.dna.toplevel.fa' --gtf 'Homo_sapiens.NCBI36.54.gtf' --max_memory '62.GB' --max_cpus 16
+ ```
+
+ </details>
+
 
 # Differentially expressed genes
 
