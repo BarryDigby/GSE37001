@@ -18,7 +18,7 @@ Methods and results are detailed below for posterity, with comments describing m
 
 # Quantification
 
-Raw sequencing data was downloaded using `SRAtools` `fastq-dump` via a singularity container. The nextflow script to download the reads is provided in `scripts/` and the set of commands used is givebn below:
+Raw sequencing data was downloaded using `SRAtools` `fastq-dump` via a singularity container. The nextflow script to download the reads is provided in `scripts/` and the set of commands used is given below:
 
 <details markdown="1">
 <summary>Download raw reads</summary>
@@ -31,7 +31,14 @@ nextflow -bg run dl_sra.nf --sra_id 'SRP012096' -with-singularity 'sratoolkit.im
 </details>
 
 
- RNA-Seq analysis was performed using `nf-core/rnaseq` v3.1 using default parameters.
+ RNA-Seq analysis was performed using `nf-core/rnaseq v3.1` using default parameters. The metadata provided to `nf-core/rnaseq` is given below, of note the dataset is single-end and unstranded:
+
+ | sample        | fastq_1                      | fastq_2 | strandedness |
+ |---------------|------------------------------|---------|--------------|
+ | METTL3_KD1    | fastq/METTL3_KD1.fastq.gz    |         | unstranded   |
+ | METTL3_KD2    | fastq/METTL3_KD2.fastq.gz    |         | unstranded   |
+ | Mock_control1 | fastq/Mock_control1.fastq.gz |         | unstranded   |
+ | Mock_control2 | fastq/Mock_control2.fastq.gz |         | unstranded   |
 
 # Differentially expressed genes
 
