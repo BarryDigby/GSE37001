@@ -386,13 +386,13 @@ saveRDS(up_dex, file="/data/github/GSE37001/exon/DEXSeq_exons_upregulated.rda")
 saveRDS(down_dex, file="/data/github/GSE37001/exon/DEXSeq_exons_downregulated.rda")
 ```
 
+</details>
+
 ### Comments
 
 The analysis yielded less differentially expressed exons (126) compared to the paper (474). It is less clear why this is the case, as `IHW` nor `apeglm` filtering were applied to the workflow.
 
 The analysis was straight forward, the information provided by the paper was sufficient to perfrom the analysis.
-
-</details>
 
 # Differentially expressed introns
 
