@@ -31,6 +31,16 @@ nextflow -bg run dl_sra.nf --sra_id 'SRP012096' -with-singularity 'sratoolkit.im
 
 </details>
 
+SRA ID's cn be mapped to the corresponding experiment metadata using the table below:
+
+| SRR456526.fastq.gz | METTL3_KD1.fastq.gz    |
+|--------------------|------------------------|
+| SRR456527.fastq.gz | METTL3_KD2.fastq.gz    |
+| SRR456528.fastq.gz | Mock_control1.fastq.gz |
+| SRR456529.fastq.gz | Mock_control2.fastq.gz |
+
+***
+
 Reference genome and GTF files were prepared as per the paper, using `H. sapiens ENSEMBL release 54 (NCBI36/hg18)`.
 
 <details markdown="1">
@@ -56,6 +66,8 @@ gunzip Homo_sapiens.NCBI36.54.gtf.gz
  | METTL3_KD2    | fastq/METTL3_KD2.fastq.gz    |         | unstranded   |
  | Mock_control1 | fastq/Mock_control1.fastq.gz |         | unstranded   |
  | Mock_control2 | fastq/Mock_control2.fastq.gz |         | unstranded   |
+
+***
 
  <details markdown="1">
  <summary>Nextflow command</summary>
