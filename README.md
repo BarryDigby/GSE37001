@@ -31,11 +31,13 @@ nextflow -bg run dl_sra.nf --sra_id 'SRP012096' -with-singularity 'sratoolkit.im
 
 </details>
 
-SRA ID's cn be mapped to the corresponding experiment metadata using the table below:
+SRA ID's can be mapped to the corresponding experiment metadata using the table below:
 
-| SRR456526.fastq.gz | METTL3_KD1.fastq.gz    |
-|--------------------|------------------------|
-| SRR456527.fastq.gz | METTL3_KD2.fastq.gz    |
+
+|       SRA ID       |   Experimental design  |
+|:------------------:|:----------------------:|
+| SRR456526.fastq.gz |   METTL3_KD1.fastq.gz  |
+| SRR456527.fastq.gz |   METTL3_KD2.fastq.gz  |
 | SRR456528.fastq.gz | Mock_control1.fastq.gz |
 | SRR456529.fastq.gz | Mock_control2.fastq.gz |
 
