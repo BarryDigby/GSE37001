@@ -18,6 +18,21 @@ Methods and results are detailed below for posterity, with comments describing m
 
 # Quantification
 
+Raw sequencing data was downloaded using `SRAtools` `fastq-dump` via a singularity container. The nextflow script to download the reads is provided in `scripts/` and the set of commands used is givebn below:
+
+<details markdown="1">
+<summary>Download raw reads</summary>
+
+```bash
+singularity pull sratoolkit.img docker://pegi3s:sratoolkit
+nextflow -bg run dl_sra.nf --sra_id 'SRP012096' -with-singularity 'sratoolkit.img'
+```
+
+</details>
+
+
+ RNA-Seq analysis was performed using `nf-core/rnaseq` v3.1 using default parameters.
+
 # Differentially expressed genes
 
 # Differentially expressed isoforms
