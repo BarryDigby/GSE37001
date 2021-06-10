@@ -34,7 +34,7 @@ nextflow -bg run dl_sra.nf --sra_id 'SRP012096' -with-singularity 'sratoolkit.im
 Reference genome and GTF files were prepared as per the paper, using `H. sapiens ENSEMBL release 54 (NCBI36/hg18)`.
 
 <details markdown="1">
-<summary>Download raw reads</summary>
+<summary>Download reference files</summary>
 
 ```bash
 wget http://ftp.ensembl.org/pub/release-54/fasta/homo_sapiens/dna/Homo_sapiens.NCBI36.54.dna.toplevel.fa.gz
