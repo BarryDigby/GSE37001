@@ -466,7 +466,6 @@ dxd <- estimateSizeFactors(dxd)
 # gimme power!
 BPPARAM = BiocParallel::MulticoreParam(4)
 dxd <- estimateDispersions(dxd, formula = formulaFullModel, BPPARAM=BPPARAM)
-plotDispEsts(dxd)
 dxd <- testForDEU(dxd, fullModel = formulaFullModel, reducedModel = formulaReducedModel, BPPARAM = BPPARAM)
 dxd <- estimateExonFoldChanges( dxd, fitExpToVar="condition", BPPARAM = BPPARAM, independentFiltering = TRUE)
 dex_res <- DEXSeqResults(dxd)
@@ -502,3 +501,7 @@ saveRDS(down_dex, file="/data/github/GSE37001/intron/DEXSeq_introns_downregulate
 ```
 
 </details>
+
+### Comments
+
+The analsyis yielded 660 differentially expressed introns, which was less than the authors produced (2672). The authors were not transparent in their methods used to count introns (the dreaded 'in-house script') however I am reasonably confident that my methods in generating intron counts were correct. Interestingly the authors decided to use `DESeq` for the analysis over `DEXSeq`. They did not state why this was the case, and strikes me as unusual. Therefore this section of the analysis is left open to interpretation and clouds reproducibility. 
