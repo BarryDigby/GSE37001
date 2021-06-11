@@ -16,6 +16,7 @@ Methods and results are detailed below for posterity, with comments describing m
 * [Differentially expressed isoforms](#differentially-expressed-isoforms)
 * [Differentially expressed exons](#differentially-expressed-exons)
 * [Differentially expressed introns](#differentially-expressed-introns)
+* [Comparison of results](#comparison-of-results)
 
 > Please note: The direction of fold change is with respect to control. I.e a log2FC value of 2 refers to up-regulation in the METTL3 knockdown samples.
 
