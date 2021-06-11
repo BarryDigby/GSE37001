@@ -519,7 +519,7 @@ We report 428 differentially expressed genes in our study (LFC 2, FDR 5%). After
   <img src="assets/images/gene_venn.png" alt="gene_venn">
 </p>
 
-A dataframe containing summary statistics for differentially expressed genes found in both analyses can be found under [`gene/DE_genes.txt`](https://github.com/BarryDigby/GSE37001/tree/main/gene/DEG.txt). Results have been ordered according to the union of results, thereafter genes with NA values represent the difference between sets.
+A dataframe containing summary statistics for differentially expressed genes found in both analyses can be found under [`gene/DE_genes.txt`](https://github.com/BarryDigby/GSE37001/tree/main/gene/DE_genes.txt). Results have been ordered according to the union of results, thereafter genes with NA values represent the difference between sets.
 
 ## Isoform
 
