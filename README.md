@@ -512,7 +512,7 @@ To assess the degree of concordance in each of the 4 analyses, filtering was app
 
 ## Gene
 
-We report 428 differentially expressed genes in our study (LFC 2, FDR 5%). After applying the same filtering methods to the supplementary DE_gene file, there were 470 differentially expressed genes, 336 of which were common amongst the datasets.
+We report 428 differentially expressed genes in our study (LFC 2, FDR 5%). After applying the same filtering methods to the supplementary gene file, there were 470 differentially expressed genes, 336 of which were common amongst the datasets.
 
 <p markdown="1" align="center">
   <img src="assets/images/gene_venn.png" alt="gene_venn">
@@ -524,7 +524,7 @@ A dataframe containing summary statistics for differentially expressed genes fou
 
 ## Isoform
 
-We report 1600 differentially expressed transcripts in our study (LFC 2, FDR 5%). After applying the same filtering methods to the supplementary DE_isoforms file, there were 2020 differentially expressed transcripts, 271 of which were common amongst the datasets.
+We report 1600 differentially expressed transcripts in our study (LFC 2, FDR 5%). After applying the same filtering methods to the supplementary isoforms file, there were 2020 differentially expressed transcripts, 271 of which were common amongst the datasets.
 
 <p markdown="1" align="center">
   <img src="assets/images/isoform_venn.png" alt="isoform_venn">
@@ -532,7 +532,22 @@ We report 1600 differentially expressed transcripts in our study (LFC 2, FDR 5%)
 
 A dataframe containing summary statistics for differentially expressed transcripts found in both analyses can be found under [`isoform/DE_isoforms.txt`](https://github.com/BarryDigby/GSE37001/tree/main/isoform/DE_isoforms.txt). Results have been ordered according to the union of results, thereafter genes with NA values represent the difference between sets.
 
-> Please note that lnFC values from `Cufflinks` of `1.79769e+308` were converted to `Inf` to stay consistent with the master gene set.
+> Please note that lnFC values from `Cufflinks` of `1.79769e+308` were converted to `Inf` to stay consistent with the master gene set. `1.79769e+308` represents lnFC values derived from dividing by 0.
+
+## Exons
+
+We report 172 differentially expressed exons in our study (LFC 2, FDR 5%). After applying the same filtering methods to the supplementary exons file, there were 176 differentially expressed transcripts, 27 of which were common amongst the datasets.
+
+<p markdown="1" align="center">
+  <img src="assets/images/exon_venn.png" alt="exon_venn">
+</p>
+
+A dataframe containing summary statistics for differentially expressed exons found in both analyses can be found under [`exon/DE_exons.txt`](https://github.com/BarryDigby/GSE37001/tree/main/exon/DE_exons.txt). Results have been ordered according to the union of results, thereafter genes with NA values represent the difference between sets.
+
+> There were discrepancies between the naming convention of `GeneID:ExonNumber`, most likely due to using different versions of `DEXSeq`.
+
+## Introns
+
 
 
 
