@@ -86,7 +86,7 @@ nextflow -bg run nf-core/rnaseq -profile singularity --input 'samples.csv' --fas
 
 # Differentially expressed genes
 
-Pairwise comparisons of `knockdown` vs `control` populations were generated using an additive linear model with replicates as the blocking factor in `DESeq2`.
+Pairwise comparisons of `knockdown` vs `control` populations were generated using `DESeq2` with a simple model design ` ~ condition`.
 
 The `R` code used to generate results are given below:
 
@@ -109,13 +109,12 @@ mart <- useMart("ENSEMBL_MART_ENSEMBL",
 tx2gene <- getBM(attributes = c("ensembl_transcript_id", "hgnc_symbol"), mart = mart)
 txi <- tximport(files, type = "salmon", tx2gene = tx2gene, txOut = FALSE)
 # DDS object
-dds <- DESeqDataSetFromTximport(txi, colData = meta, design = ~ replicates + condition )
+dds <- DESeqDataSetFromTximport(txi, colData = meta, design = ~ condition)
 dds$condition <- relevel(dds$condition, ref="CTRL")
 dds <- DESeq(dds)
 # DGE
-res <- results(dds, filterFun=ihw, alpha=0.05, c("condition", "KD", "CTRL"))
-LFC <- lfcShrink(dds = dds, res= res, coef = 3, type = "apeglm")
-LFC_df <- as.data.frame(LFC)
+res <- results(dds, alpha=0.05, c("condition", "KD", "CTRL"))
+res_df <- as.data.frame(res)
 # functions
 # use paper cutoff here (FC > 2, FDR 5%)
 get_upregulated <- function(df){
@@ -173,15 +172,15 @@ annotate_de_genes <- function(df){
 
 }
 # get up regulated
-up <- get_upregulated(LFC)
+up <- get_upregulated(res_df)
 up$hgnc_symbol <- rownames(up)
 up <- annotate_de_genes(up)
-DT::datatable(up, rownames = FALSE)
 # get down regulated
-down <- get_downregulated(LFC)
+down <- get_downregulated(res_df)
 down$hgnc_symbol <- rownames(down)
 down <- annotate_de_genes(down)
-DT::datatable(down, rownames = FALSE)
+# not sure why this is not working in the function, re-run to order by LFC
+down <- down[order(down$log2FC),]
 # write to file
 write.table(up, "/data/github/GSE37001/gene/DESeq2_gene_upregulated.txt", sep="\t", quote = FALSE, row.names = FALSE)
 write.table(down, "/data/github/GSE37001/gene/DESeq2_gene_downregulated.txt", sep="\t", quote = FALSE, row.names = FALSE)
@@ -191,15 +190,13 @@ write.table(down, "/data/github/GSE37001/gene/DESeq2_gene_downregulated.txt", se
 
 ### Comments
 
-The number of differentially expressed genes returned by the analysis (223) were significantly lower than those reported by the study (1977), despite using the same cut-off values (LFC > 2 & FDR 5%). In my opinion, this is due to using `filterFun=ihw` when extracting the `DESeq2` results, and by using `apeglm` `LFCShrink` penalised regression to reduce low confidence DEGs.
+The number of differentially expressed genes returned by the analysis (428) were significantly lower than those reported by the study (1977), despite using the same cut-off values (LFC > 2 & FDR 5%).
 
-Despite the discrepancy in results, this was a relatively simple analysis to perform. The paper stated which reference genome files were used (`ENSEMBL release 54`) which is crucial in returning the same genomic coordinates for M6a peak overlap analysis.
+Despite the discrepancy in results, this was a relatively simple analysis to perform. The paper stated which reference genome files were used (`ENSEMBL release 54`) which is crucial in returning the same genomic coordinates for M6A peak overlap analysis.
 
 # Differentially expressed isoforms
 
-Initially attempted the analysis using `Stringtie` output files in `Ballgown`, but was not satisfied with the results generated. Specifying `adjustVars="replicates"` in an attempt to construct an additive linear model with replicates as the blocking factor (as in the DEG analysis) produced `NAN` pvalue and adjusted pvalues. This is most likely due to a lack of variance amongst transcripts after correcting for `replicates` and due to the fact the study was underpowered.
-
-To overcome this, the analysis was performed using the `DESeq2` workflow above with one change: `txi <- tximport(files, type = "salmon", tx2gene = tx2gene, txOut = TRUE)` to use transcript counts in the analysis instead of gene counts. The workflow is given below.
+The analysis was performed using the `DESeq2` workflow above with one change: `txi <- tximport(files, type = "salmon", tx2gene = tx2gene, txOut = TRUE)` to use transcript counts in the analysis instead of gene counts. The workflow is given below.
 
 <details markdown="1">
 <summary>Differential isoform analysis</summary>
@@ -208,15 +205,13 @@ To overcome this, the analysis was performed using the `DESeq2` workflow above w
 # same as above, but use TX counts
 txi <- tximport(files, type = "salmon", tx2gene = tx2gene, txOut = TRUE)
 # DDS object
-dds <- DESeqDataSetFromTximport(txi, colData = meta, design = ~ replicates + condition )
+dds <- DESeqDataSetFromTximport(txi, colData = meta, design = ~ condition )
 dds$condition <- relevel(dds$condition, ref="CTRL")
 dds <- DESeq(dds)
 # DGE
-res <- results(dds, filterFun=ihw, alpha=0.05, c("condition", "KD", "CTRL"))
-LFC <- lfcShrink(dds = dds, res= res, coef = 3, type = "apeglm")
-LFC_df <- as.data.frame(LFC)
+res <- results(dds, alpha=0.05, c("condition", "KD", "CTRL"))
+res_df <- as.data.frame(res)
 # functions
-# use paper cutoff here (FC > 2, FDR 5%)
 # use paper cutoff here (FC > 2, FDR 5%)
 get_upregulated <- function(df){
 
@@ -273,15 +268,14 @@ annotate_de_genes <- function(df){
 
 }
 # get up regulated
-up <- get_upregulated(LFC)
+up <- get_upregulated(res_df)
 up$ensembl_transcript_id <- rownames(up)
 up <- annotate_de_genes(up)
-DT::datatable(up, rownames = FALSE)
 # get down regulated
-down <- get_downregulated(LFC)
+down <- get_downregulated(res_df)
 down$ensembl_transcript_id <- rownames(down)
 down <- annotate_de_genes(down)
-DT::datatable(down, rownames = FALSE)
+down <- down[order(down$log2FC),]
 # write to file
 write.table(up, "/data/github/GSE37001/isoform/DESeq2_isoform_upregulated.txt", sep="\t", quote = FALSE, row.names = FALSE)
 write.table(down, "/data/github/GSE37001/isoform/DESeq2_isoform_downregulated.txt", sep="\t", quote = FALSE, row.names = FALSE)
@@ -291,7 +285,7 @@ write.table(down, "/data/github/GSE37001/isoform/DESeq2_isoform_downregulated.tx
 
 ### Comments
 
-Once again the number of differentially expressed isoforms returned by the analysis (408) is substantially lower than those reported by the paper (7521!). This is likely due to the independent filtering method, apeglm methods employed by the analysis.
+The number of differentially expressed isoforms returned by the analysis (1600) is substantially lower than those reported by the paper (7521).
 
 Recreating this analysis was difficult, in the end I compromised by using `DESeq2`. Per the paper:
 
@@ -336,21 +330,20 @@ inDir = "/data/projects/leipzig/dexseq/"
 countFiles = list.files(inDir, pattern=".txt$", full.names=TRUE)
 # stage GFF
 flattenedFile = list.files(inDir, pattern="gff$", full.names=TRUE)
-# define full, reduced models
-# "To detect differences in exon usage that affect both replicates in the same manner due to condition"
-formulaFullModel    =  ~ sample + exon + replicates:exon + condition:exon
-formulaReducedModel =  ~ sample + exon + replicates:exon
+# define full, null models
+formulaFullModel    =  ~ sample + exon + condition:exon
+formulaReducedModel =  ~ sample + exon
 # dxd object
 dxd = DEXSeqDataSetFromHTSeq(
       countFiles,
       sampleData=meta,
-      design= ~ sample + exon + replicates:exon + condition:exon,
+      design= ~ sample + exon + condition:exon,
       flattenedfile=flattenedFile )
 # relevel, normalize
 dxd$condition <- relevel(dxd$condition, ref="CTRL")
 dxd <- estimateSizeFactors(dxd)
 # gimme power!
-BPPARAM = BiocParallel::MulticoreParam(4)
+BPPARAM = BiocParallel::MulticoreParam(8)
 dxd <- estimateDispersions(dxd, formula = formulaFullModel, BPPARAM=BPPARAM)
 dxd <- testForDEU(dxd, fullModel = formulaFullModel, reducedModel = formulaReducedModel, BPPARAM = BPPARAM)
 dxd <- estimateExonFoldChanges( dxd, fitExpToVar="condition", BPPARAM = BPPARAM, independentFiltering = TRUE)
@@ -390,7 +383,7 @@ saveRDS(down_dex, file="/data/github/GSE37001/exon/DEXSeq_exons_downregulated.rd
 
 ### Comments
 
-The analysis yielded less differentially expressed exons (126) compared to the paper (474). It is less clear why this is the case, as `IHW` nor `apeglm` filtering were applied to the workflow.
+The analysis yielded less differentially expressed exons (172) compared to the paper (474). It is less clear why this is the case, as `IHW` nor `apeglm` filtering were applied to the workflow.
 
 The analysis was straight forward, the information provided by the paper was sufficient to perfrom the analysis.
 
@@ -450,21 +443,20 @@ inDir = "/data/projects/leipzig/introns/"
 countFiles = list.files(inDir, pattern=".txt$", full.names=TRUE)
 # stage GFF
 flattenedFile = list.files(inDir, pattern="gff$", full.names=TRUE)
-# define full, reduced models
-# "To detect differences in exon usage that affect both replicates in the same manner due to condition"
-formulaFullModel    =  ~ sample + exon + replicates:exon + condition:exon
-formulaReducedModel =  ~ sample + exon + replicates:exon
+# define full, null models
+formulaFullModel    =  ~ sample + exon + condition:exon
+formulaReducedModel =  ~ sample + exon
 # dxd object
 dxd = DEXSeqDataSetFromHTSeq(
       countFiles,
       sampleData=meta,
-      design= ~ sample + exon + replicates:exon + condition:exon,
+      design= ~ sample + exon + condition:exon,
       flattenedfile=flattenedFile)
 # relevel, normalize
 dxd$condition <- relevel(dxd$condition, ref="CTRL")
 dxd <- estimateSizeFactors(dxd)
 # gimme power!
-BPPARAM = BiocParallel::MulticoreParam(4)
+BPPARAM = BiocParallel::MulticoreParam(8)
 dxd <- estimateDispersions(dxd, formula = formulaFullModel, BPPARAM=BPPARAM)
 dxd <- testForDEU(dxd, fullModel = formulaFullModel, reducedModel = formulaReducedModel, BPPARAM = BPPARAM)
 dxd <- estimateExonFoldChanges( dxd, fitExpToVar="condition", BPPARAM = BPPARAM, independentFiltering = TRUE)
@@ -504,7 +496,27 @@ saveRDS(down_dex, file="/data/github/GSE37001/intron/DEXSeq_introns_downregulate
 
 ### Comments
 
-The analsyis yielded 660 differentially expressed introns, which was less than the authors produced (2672). The authors were not transparent in their methods used to count introns (the dreaded 'in-house script') however I am reasonably confident that my methods in generating intron counts were correct. Interestingly the authors decided to use `DESeq` for the analysis over `DEXSeq`. They did not state why this was the case, and strikes me as unusual. Therefore this section of the analysis is left open to interpretation and clouds reproducibility.
+The analsyis yielded 964 differentially expressed introns, which was less than the authors produced (2672). The authors were not transparent in their methods used to count introns (the dreaded 'in-house script') however I am reasonably confident that my methods in generating intron counts were correct. Interestingly the authors decided to use `DESeq` for the analysis over `DEXSeq`. They did not state why this was the case, and strikes me as unusual. Therefore this section of the analysis is left open to interpretation and clouds reproducibility.
+
+# Validity of supplementary materials
+
+<p markdown="1" align="center">
+  <img src="assets/images/supp_table.png" alt="de_rnas">
+</p>
+
+The table caption is very misleading. After downloading the supplementary materials (4 files, containing DE genes, isoforms, introns and exons) and inspecting the files, it immediately became apparent that the numbers stated in the table refer to the number of DE RNA molecules **before filtering** (LFC 2, FDR 5%). This explains the large discrepancy in the numbers originally reported in this analysis above.
+
+***
+
+To assess the degree of concordance in each of the 4 analyses, filtering was applied to the supplementary material datasets and compared with our analysis results.  
+
+## Gene
+
+We report 428 differentially expressed genes in our study. After applying the appropriate filtering to the supplementary DE_gene file, there were 470 differentially expressed genes.
+
+<p markdown="1" align="center">
+  <img src="assets/images/gene_venn.png" alt="gene_venn">
+</p>
 
 # R Session
 
