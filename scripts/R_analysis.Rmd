@@ -1,0 +1,551 @@
+---
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+    highlight: zenburn
+    theme: flatly
+---
+
+# M6a RNA-Seq Analysis
+
+Note to self - be careful to check the `get_upregulated()` and `get_downregulated()` functions before running.
+
+```{R, message=F, warning=F}
+library(IHW)
+library(apeglm)
+library(DT)
+library(dplyr)
+library(biomaRt)
+library(tximport)
+library(rhdf5)
+library(gplots)
+library(DESeq2)
+library(RColorBrewer)
+library(pheatmap)
+library(PCAtools)
+library(GenomicFeatures)
+library(clusterProfiler)
+library(ggplot2)
+library(tidyverse)
+library(ggpubr)
+library(DEXSeq)
+library(BiocParallel)
+library(ggvenn)
+```
+
+# Differentially expressed genes
+
+```{R, message=F, warning=F}
+# stage files
+meta <- data.frame(row.names=c("METTL3_KD1", "METTL3_KD2", "Mock_control1", "Mock_control2"),
+                   "condition"=c("KD", "KD", "CTRL", "CTRL"),
+                   "replicates"=as.factor(c("1", "2", "1", "2")))
+dir <- "/data/projects/leipzig/results/star_salmon"
+files <- file.path(dir, rownames(meta), "quant.sf")
+# Use release 54 here *crucial for accurate coordinates across DE analyses
+mart <- useMart("ENSEMBL_MART_ENSEMBL",
+                dataset="hsapiens_gene_ensembl",
+                host="may2009.archive.ensembl.org",
+                path="/biomart/martservice",
+                archive=FALSE)
+tx2gene <- getBM(attributes = c("ensembl_transcript_id", "hgnc_symbol"), mart = mart)
+txi <- tximport(files, type = "salmon", tx2gene = tx2gene, txOut = FALSE)
+# DDS object
+dds <- DESeqDataSetFromTximport(txi, colData = meta, design = ~ condition)
+dds$condition <- relevel(dds$condition, ref="CTRL")
+dds <- DESeq(dds)
+# DGE
+res <- results(dds, alpha=0.05, c("condition", "KD", "CTRL"))
+res_df <- as.data.frame(res)
+# functions
+# use paper cutoff here (FC > 2, FDR 5%)
+get_upregulated <- function(df){
+
+    key <- intersect(rownames(df)[which(df$log2FoldChange>=2)], rownames(df)[which(df$padj<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(-results$log2FoldChange),]
+    return(results)
+}
+get_downregulated <- function(df){
+
+    key <- intersect(rownames(df)[which(df$log2FoldChange<=-2)], rownames(df)[which(df$padj<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(results$log2FoldChange),]
+    return(results)
+}
+annotate_de_genes <- function(df){
+
+    df$hgnc_symbol <- rownames(df)
+    mart <- useMart("ENSEMBL_MART_ENSEMBL",
+                dataset="hsapiens_gene_ensembl",
+                host="may2009.archive.ensembl.org",
+                path="/biomart/martservice",
+                archive=FALSE)
+    info <- getBM(attributes=c("hgnc_symbol",
+                               "ensembl_gene_id",
+                               "chromosome_name",
+                               "start_position",
+                               "end_position",
+                               "strand"),
+                  filters = c("hgnc_symbol"),
+                  values = df$hgnc_symbol,
+                  mart = mart,
+                  useCache=FALSE)
+
+    tmp <- merge(df, info, by="hgnc_symbol")
+    tmp$strand <- gsub("-1", "-", tmp$strand)
+    tmp$strand <- gsub("1", "+", tmp$strand)
+    tmp$hgnc_symbol <- make.names(tmp$hgnc_symbol, unique = T)
+    #tmp <- tmp[!grepl("CHR", tmp$chromosome_name),]
+
+    output_col <- c("hgnc", "ensembl_gene_id", "chromosome", "start", "end", "strand", "log2FC", "pvalue", "padj")
+    tmp <- subset(tmp, select=c(hgnc_symbol, ensembl_gene_id, chromosome_name, start_position, end_position, strand, log2FoldChange, pvalue, padj))
+    colnames(tmp) <- output_col
+
+    if(min(tmp$Log2FC) > 0){
+        tmp <- tmp[order(-tmp$log2FC),]
+    }else{
+        tmp <- tmp[order(tmp$log2FC),]
+    }
+
+    return(tmp)
+
+}
+# get up regulated
+up <- get_upregulated(res_df)
+up$hgnc_symbol <- rownames(up)
+up <- annotate_de_genes(up)
+# get down regulated
+down <- get_downregulated(res_df)
+down$hgnc_symbol <- rownames(down)
+down <- annotate_de_genes(down)
+# not sure why this is not working in the function, re-run to order by LFC
+down <- down[order(down$log2FC),]
+# write to file
+write.table(up, "/data/github/GSE37001/gene/DESeq2_gene_upregulated.txt", sep="\t", quote = FALSE, row.names = FALSE)
+write.table(down, "/data/github/GSE37001/gene/DESeq2_gene_downregulated.txt", sep="\t", quote = FALSE, row.names = FALSE)
+```
+
+## Results {.tabset}
+
+### Up Regulated
+```{R, message=F, warning=F}
+DT::datatable(up, rownames = FALSE, options=list(scrollX=T))
+```
+
+### Down Regulated
+```{R, message=F, warning=F}
+DT::datatable(down, rownames = FALSE, options=list(scrollX=T))
+```
+
+# Differentially expressed isoforms
+
+```{R, message=F, warning=F}
+# same as above, but use TX counts
+txi <- tximport(files, type = "salmon", tx2gene = tx2gene, txOut = TRUE)
+# DDS object
+dds <- DESeqDataSetFromTximport(txi, colData = meta, design = ~ condition )
+dds$condition <- relevel(dds$condition, ref="CTRL")
+dds <- DESeq(dds)
+# DGE
+res <- results(dds, alpha=0.05, c("condition", "KD", "CTRL"))
+res_df <- as.data.frame(res)
+# functions
+# use paper cutoff here (FC > 2, FDR 5%)
+get_upregulated <- function(df){
+
+    key <- intersect(rownames(df)[which(df$log2FoldChange>=2)], rownames(df)[which(df$padj<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(-results$log2FoldChange),]
+    return(results)
+}
+get_downregulated <- function(df){
+
+    key <- intersect(rownames(df)[which(df$log2FoldChange<=-2)], rownames(df)[which(df$padj<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(results$log2FoldChange),]
+    return(results)
+}
+annotate_de_genes <- function(df){
+
+    df$hgnc_symbol <- rownames(df)
+    mart <- useMart("ENSEMBL_MART_ENSEMBL",
+                dataset="hsapiens_gene_ensembl",
+                host="may2009.archive.ensembl.org",
+                path="/biomart/martservice",
+                archive=FALSE)
+    info <- getBM(attributes=c("ensembl_transcript_id",
+                               "ensembl_gene_id",
+                               "chromosome_name",
+                               "start_position",
+                               "end_position",
+                               "strand"),
+                  filters = c("ensembl_transcript_id"),
+                  values = df$ensembl_transcript_id,
+                  mart = mart,
+                  useCache=FALSE)
+
+    tmp <- merge(df, info, by="ensembl_transcript_id")
+    tmp$strand <- gsub("-1", "-", tmp$strand)
+    tmp$strand <- gsub("1", "+", tmp$strand)
+    tmp$ensembl_transcript_id <- make.names(tmp$ensembl_transcript_id, unique = T)
+    #tmp <- tmp[!grepl("CHR", tmp$chromosome_name),]
+
+    output_col <- c("ensembl_transcript_id", "ensembl_gene_id", "chromosome", "start", "end", "strand", "log2FC", "pvalue", "padj")
+    tmp <- subset(tmp, select=c(ensembl_transcript_id, ensembl_gene_id, chromosome_name, start_position, end_position, strand, log2FoldChange, pvalue, padj))
+    colnames(tmp) <- output_col
+
+    if(min(tmp$Log2FC) > 0){
+        tmp <- tmp[order(-tmp$log2FC),]
+    }else{
+        tmp <- tmp[order(tmp$log2FC),]
+    }
+
+    return(tmp)
+
+}
+# get up regulated
+up <- get_upregulated(res_df)
+up$ensembl_transcript_id <- rownames(up)
+up <- annotate_de_genes(up)
+# get down regulated
+down <- get_downregulated(res_df)
+down$ensembl_transcript_id <- rownames(down)
+down <- annotate_de_genes(down)
+down <- down[order(down$log2FC),]
+# write to file
+write.table(up, "/data/github/GSE37001/isoform/DESeq2_isoform_upregulated.txt", sep="\t", quote = FALSE, row.names = FALSE)
+write.table(down, "/data/github/GSE37001/isoform/DESeq2_isoform_downregulated.txt", sep="\t", quote = FALSE, row.names = FALSE)
+```
+
+## Results {.tabset}
+
+### Up Regulated
+```{R, message=F, warning=F}
+DT::datatable(up, rownames = FALSE, options=list(scrollX=T))
+```
+
+### Down Regulated
+```{R, message=F, warning=F}
+DT::datatable(down, rownames = FALSE, options=list(scrollX=T))
+```
+
+# Differentialy expressed exons
+
+```{R, message=F, warning=F}
+# stage files
+inDir = "/data/projects/leipzig/dexseq/"
+countFiles = list.files(inDir, pattern=".txt$", full.names=TRUE)
+# stage GFF
+flattenedFile = list.files(inDir, pattern="gff$", full.names=TRUE)
+# define full, null models
+formulaFullModel    =  ~ sample + exon + condition:exon
+formulaReducedModel =  ~ sample + exon
+# dxd object
+dxd = DEXSeqDataSetFromHTSeq(
+      countFiles,
+      sampleData=meta,
+      design= ~ sample + exon + condition:exon,
+      flattenedfile=flattenedFile )
+# relevel, normalize
+dxd$condition <- relevel(dxd$condition, ref="CTRL")
+dxd <- estimateSizeFactors(dxd)
+# gimme power!
+BPPARAM = BiocParallel::MulticoreParam(8)
+dxd <- estimateDispersions(dxd, formula = formulaFullModel, BPPARAM=BPPARAM)
+dxd <- testForDEU(dxd, fullModel = formulaFullModel, reducedModel = formulaReducedModel, BPPARAM = BPPARAM)
+dxd <- estimateExonFoldChanges( dxd, fitExpToVar="condition", BPPARAM = BPPARAM, independentFiltering = TRUE)
+dex_res <- DEXSeqResults(dxd)
+dex_df <- as.data.frame(dex_res)
+# subset results
+get_upregulated_dex <- function(df){
+
+    key <- intersect(rownames(df)[which(df$log2fold_KD_CTRL>=2)], rownames(df)[which(df$padj<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(-results$log2fold_KD_CTRL),]
+    return(results)
+}
+get_downregulated_dex <- function(df){
+
+    key <- intersect(rownames(df)[which(df$log2fold_KD_CTRL<=-2)], rownames(df)[which(df$padj<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(results$log2fold_KD_CTRL),]
+    return(results)
+}
+# run functions
+up_dex <- get_upregulated_dex(dex_df)
+down_dex <- get_downregulated_dex(dex_df)
+# tidy
+up_dex <- subset(up_dex, select=c(groupID, transcripts, featureID, genomicData.seqnames, genomicData.start, genomicData.end, genomicData.strand, log2fold_KD_CTRL, pvalue, padj))
+colnames(up_dex) <- c("ensembl_gene_id", "ensembl_transcript_id", "exon_id", "chromosome", "start", "end", "strand", "log2FC", "pvalue", "padj" )
+down_dex <- subset(down_dex, select=c(groupID, transcripts, featureID, genomicData.seqnames, genomicData.start, genomicData.end, genomicData.strand, log2fold_KD_CTRL, pvalue, padj))
+colnames(down_dex) <- c("ensembl_gene_id", "ensembl_transcript_id", "exon_id", "chromosome", "start", "end", "strand", "log2FC", "pvalue", "padj" )
+# write to rda file (transcripts column is a list of transcripts overlapping the exon, very hard to read into R by TSV/CSV)
+saveRDS(up_dex, file="/data/github/GSE37001/exon/DEXSeq_exons_upregulated.rda")
+saveRDS(down_dex, file="/data/github/GSE37001/exon/DEXSeq_exons_downregulated.rda")
+```
+
+## Results {.tabset}
+
+### Up Regulated
+
+```{R, message=F, warning=F}
+up_dex <- up_dex %>% relocate(ensembl_transcript_id, .after = last_col())
+DT::datatable(up_dex, rownames = FALSE, options=list(scrollX=T))
+```
+
+### Down Regulated
+
+```{R, message=F, warning = F}
+down_dex <- down_dex %>% relocate(ensembl_transcript_id, .after = last_col())
+DT::datatable(down_dex, rownames = FALSE, options=list(scrollX=T))
+```
+
+# Differentially expressed introns
+
+```{R, message=F, warning=F}
+library(GenomicFeatures)
+library(rtracklayer)
+txdb <- makeTxDbFromGFF('/data/projects/leipzig/introns/Homo_sapiens.NCBI36.54.gtf')
+introns <- intronicParts(txdb)
+rtracklayer::export(introns, "/data/projects/leipzig/introns/introns.gtf")
+
+# stage files
+inDir = "/data/projects/leipzig/introns/"
+countFiles = list.files(inDir, pattern=".txt$", full.names=TRUE)
+# stage GFF
+flattenedFile = list.files(inDir, pattern="gff$", full.names=TRUE)
+# define full, null models
+formulaFullModel    =  ~ sample + exon + condition:exon
+formulaReducedModel =  ~ sample + exon
+# dxd object
+dxd = DEXSeqDataSetFromHTSeq(
+      countFiles,
+      sampleData=meta,
+      design= ~ sample + exon + condition:exon,
+      flattenedfile=flattenedFile)
+# relevel, normalize
+dxd$condition <- relevel(dxd$condition, ref="CTRL")
+dxd <- estimateSizeFactors(dxd)
+# gimme power!
+BPPARAM = BiocParallel::MulticoreParam(8)
+dxd <- estimateDispersions(dxd, formula = formulaFullModel, BPPARAM=BPPARAM)
+dxd <- testForDEU(dxd, fullModel = formulaFullModel, reducedModel = formulaReducedModel, BPPARAM = BPPARAM)
+dxd <- estimateExonFoldChanges( dxd, fitExpToVar="condition", BPPARAM = BPPARAM, independentFiltering = TRUE)
+dex_res <- DEXSeqResults(dxd)
+dex_df <- as.data.frame(dex_res)
+# subset results
+get_upregulated_dex <- function(df){
+
+    key <- intersect(rownames(df)[which(df$log2fold_KD_CTRL>=2)], rownames(df)[which(df$padj<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(-results$log2fold_KD_CTRL),]
+    return(results)
+}
+get_downregulated_dex <- function(df){
+
+    key <- intersect(rownames(df)[which(df$log2fold_KD_CTRL<=-2)], rownames(df)[which(df$padj<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(results$log2fold_KD_CTRL),]
+    return(results)
+}
+# run functions
+up_dex <- get_upregulated_dex(dex_df)
+down_dex <- get_downregulated_dex(dex_df)
+# tidy
+up_dex <- subset(up_dex, select=c(groupID, transcripts, featureID, genomicData.seqnames, genomicData.start, genomicData.end, genomicData.strand, log2fold_KD_CTRL, pvalue, padj))
+colnames(up_dex) <- c("ensembl_gene_id", "ensembl_transcript_id", "intron_id", "chromosome", "start", "end", "strand", "log2FC", "pvalue", "padj" )
+down_dex <- subset(down_dex, select=c(groupID, transcripts, featureID, genomicData.seqnames, genomicData.start, genomicData.end, genomicData.strand, log2fold_KD_CTRL, pvalue, padj))
+colnames(down_dex) <- c("ensembl_gene_id", "ensembl_transcript_id", "intron_id", "chromosome", "start", "end", "strand", "log2FC", "pvalue", "padj" )
+# write to rda file (transcripts column is a list of transcripts overlapping the exon, very hard to read into R by TSV/CSV)
+saveRDS(up_dex, file="/data/github/GSE37001/intron/DEXSeq_introns_upregulated.rda")
+saveRDS(down_dex, file="/data/github/GSE37001/intron/DEXSeq_introns_downregulated.rda")
+```
+
+## Results {.tabset}
+
+### Up Regulated
+
+```{R, message=F, warning=F}
+up_dex <- up_dex %>% relocate(ensembl_transcript_id, .after = last_col())
+DT::datatable(up_dex, rownames = FALSE, options=list(scrollX=T))
+```
+
+### Down Regulated
+
+```{R, message=F, warning = F}
+down_dex <- down_dex %>% relocate(ensembl_transcript_id, .after = last_col())
+DT::datatable(down_dex, rownames = FALSE, options=list(scrollX=T))
+```
+
+# Comparison of Results
+
+### Genes
+
+```{R, message=F, warning=F}
+# read in Dominissini et al DESeq results
+gene <- read.table("/data/projects/leipzig/paper_results/GSE37001_DEgenes.txt", header=T, sep="\t")
+sub_gene_up <- get_upregulated(gene)
+sub_gene_down <- get_downregulated(gene)
+# make master set of DEGs for each analysis
+paper_df <- rbind(sub_gene_up, sub_gene_down)
+our_df <- rbind(up, down)
+# make list for venn
+data = list("Refactor" = our_df$ensembl_gene_id,
+            "Dominissini et. al" = paper_df$id)
+# plot venn diagram
+png("/data/github/GSE37001/assets/images/gene_venn.png", width =600)
+ggvenn::ggvenn(data = data, set_name_size = 5) + ggtitle("Differentially expressed genes") + theme(plot.title = element_text(hjust = 0.50, size = 20, face = "bold"))
+dev.off()
+# merge results into master table
+tmp <- subset(our_df, select=c( ensembl_gene_id, log2FC, pvalue, padj))
+tmp1 <- subset(paper_df, select=c(id, log2FoldChange, pval, padj))
+colnames(tmp) <- c( "ensembl_gene_id", "Refactor_log2FC", "Refactor_pval", "Refactor_padj")
+colnames(tmp1) <- c("ensembl_gene_id", "Dominissini_log2FC", "Dominissini_pval", "Dominissini_padj")
+
+master <- merge(x=tmp, y=tmp1, by="ensembl_gene_id", all=T)
+master <- master %>% arrange(rowSums(is.na(.)))
+write.table(master, "/data/github/GSE37001/gene/DE_genes.txt", sep="\t", quote=F, row.names = F)
+
+DT::datatable(master, rownames = F, options=list(scrollX=T))
+```
+
+
+### Isoforms
+
+```{R, message=F, warning=F}
+# rejig the functions for cufflinks
+get_upregulated <- function(df){
+
+    key <- intersect(rownames(df)[which(df$lnFC>=2)], rownames(df)[which(df$adjp<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(-results$lnFC),]
+    return(results)
+}
+get_downregulated <- function(df){
+
+    key <- intersect(rownames(df)[which(df$lnFC<=-2)], rownames(df)[which(df$adjp<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    #results <- results[order(results$lnFC),]
+    return(results)
+}
+# read in Dominissini et al Cufflinks results
+tx <- read.table("/data/projects/leipzig/paper_results/isoforms_inf.txt", header=T, sep="\t")
+sub_tx_up <- get_upregulated(tx)
+sub_tx_down <- get_downregulated(tx)
+# make master set of DEtxs for each analysis
+paper_df <- rbind(sub_tx_up, sub_tx_down)
+our_df <- rbind(up, down)
+# make list for venn
+data = list("Refactor" = our_df$ensembl_transcript_id,
+            "Dominissini et. al" = paper_df$TranscriptID)
+# plot venn diagram
+png("/data/github/GSE37001/assets/images/isoform_venn.png", width =600)
+ggvenn::ggvenn(data = data, set_name_size = 5) + ggtitle("Differentially expressed isoforms") + theme(plot.title = element_text(hjust = 0.50, size = 20, face = "bold"))
+dev.off()
+# merge results into master table
+tmp <- subset(our_df, select=c(ensembl_transcript_id, log2FC, pvalue, padj))
+tmp1 <- paper_df[,c(1,5,6,7)]
+colnames(tmp) <- c("ensembl_transcript_id", "Refactor_log2FC", "Refactor_pval", "Refactor_padj")
+colnames(tmp1) <- c("ensembl_transcript_id", "Dominissini_LFC", "Dominissini_pval", "Dominissini_padj")
+
+master <- merge(x=tmp, y=tmp1, by="ensembl_transcript_id", all=T)
+
+master <- master %>% arrange(rowSums(is.na(.)))
+master$Dominissini_LFC <- gsub("-Inf", "Inf", master$Dominissini_LFC)
+write.table(master, "/data/github/GSE37001/isoform/DE_isoforms.txt", sep="\t", quote=F, row.names = F)
+DT::datatable(master, rownames = F, options=list(scrollX=T))
+
+```
+
+### Exons
+
+```{R, message=F, warning=F}
+exon <- read.table("/data/projects/leipzig/paper_results/GSE37001_DEexons.txt", sep="\t", header=T)
+# tweak functions for dominissini results
+get_upregulated <- function(df){
+
+    key <- intersect(rownames(df)[which(df$log2FC>=2)], rownames(df)[which(df$padj<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(-results$log2FC),]
+    return(results)
+}
+get_downregulated <- function(df){
+
+    key <- intersect(rownames(df)[which(df$log2FC<=-2)], rownames(df)[which(df$padj<=0.05)])
+
+    results <- as.data.frame((df)[which(rownames(df) %in% key),])
+    results <- results[order(results$log2FC),]
+    return(results)
+}
+sub_exon_up <- get_upregulated(exon)
+sub_exon_down <- get_downregulated(exon)
+# subset you results
+our_df <- rbind(up_dex, down_dex)
+our_df$GeneID.exonNumber <- rownames(our_df)
+paper_df <- rbind(sub_exon_down, sub_exon_up)
+
+# rename cols, merge
+our_df <- subset(our_df, select=c(GeneID.exonNumber, log2FC, pvalue, padj))
+colnames(our_df) <- c("GeneID.exonNumber", "Refactor_log2FC", "Refactor_pvalue", "Refactor_padj")
+paper_df <- subset(paper_df, select=c(GeneID.exonNumber, log2FC, pval, adjp))
+colnames(paper_df) <- c("GeneID.exonNumber", "Dominissini_log2FC", "Dominissini_pvalue", "Dominissini_padj")
+# make list for venn
+data = list("Refactor" = our_df$GeneID.exonNumber,
+            "Dominissini et. al" = paper_df$GeneID.exonNumber)
+# plot venn diagram
+png("/data/github/GSE37001/assets/images/exon_venn.png", width =600)
+ggvenn::ggvenn(data = data, set_name_size = 5) + ggtitle("Differentially expressed exons") + theme(plot.title = element_text(hjust = 0.50, size = 20, face = "bold"))
+dev.off()
+
+master <- merge(our_df, paper_df, by="GeneID.exonNumber", all=T)
+master <- master %>% arrange(rowSums(is.na(.)))
+write.table(master, "/data/github/GSE37001/exon/DE_exons.txt", sep="\t", quote=F, row.names = F)
+```
+
+### Introns
+
+```{R, message=F, warning=F}
+intron <- read.table("/data/projects/leipzig/paper_results/GSE37001_DEintrons.txt", sep="\t", header=T)
+sub_intron_up <- get_upregulated(intron)
+sub_intron_down <- get_downregulated(intron)
+paper_df <- rbind(sub_intron_down, sub_intron_up)
+our_df <- rbind(up_dex, down_dex)
+our_df$GeneID.exonNumber <- rownames(our_df)
+# need to strip 'E' and zeros from ID to match dominissini
+our_df$GeneID.exonNumber <- gsub("E0|E00|E000", "", our_df$GeneID.exonNumber)
+# make list for venn
+data = list("Refactor" = our_df$GeneID.exonNumber,
+            "Dominissini et. al" = paper_df$GeneId.intron)
+# plot venn diagram
+png("/data/github/GSE37001/assets/images/intron_venn.png", width =600)
+ggvenn::ggvenn(data = data, set_name_size = 5) + ggtitle("Differentially expressed introns") + theme(plot.title = element_text(hjust = 0.50, size = 20, face = "bold"))
+dev.off()
+
+our_df <- subset(our_df, select=c(GeneID.exonNumber, log2FC, pvalue, padj))
+colnames(our_df) <- c("GeneID.intronNumber", "Refactor_log2FC", "Refactor_pvalue", "Refactor_padj")
+paper_df <- subset(paper_df, select=c(GeneId.intron, log2FC, pval, padj))
+colnames(paper_df) <- c("GeneID.intronNumber", "Dominissini_log2FC", "Dominissini_pvalue", "Dominissini_padj")
+
+master <- merge(our_df, paper_df, by="GeneID.intronNumber", all=T)
+master <- master %>% arrange(rowSums(is.na(.)))
+write.table(master, "/data/github/GSE37001/intron/DE_introns.txt", sep="\t", quote=F, row.names = F)
+```
+
+
+```{R}
+sessionInfo()
+```
