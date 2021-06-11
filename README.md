@@ -512,7 +512,7 @@ To assess the degree of concordance in each of the 4 analyses, filtering was app
 
 ## Gene
 
-We report 428 differentially expressed genes in our study. After applying the appropriate filtering to the supplementary DE_gene file, there were 470 differentially expressed genes.
+We report 428 differentially expressed genes in our study. After applying the appropriate filtering to the supplementary DE_gene file, there were 470 differentially expressed genes, 336 of which were shared amongst the datasets.
 
 <p markdown="1" align="center">
   <img src="assets/images/gene_venn.png" alt="gene_venn">
