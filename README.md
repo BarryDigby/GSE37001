@@ -504,11 +504,11 @@ The analsyis yielded 964 differentially expressed introns, which was less than t
   <img src="assets/images/supp_table.png" alt="de_rnas">
 </p>
 
-The supplementary table caption is very misleading. After downloading the supplementary materials (4 files, containing DE genes, isoforms, introns and exons) and inspecting the files, it immediately became apparent that the numbers stated in the table refer to the number of DE RNA molecules **before filtering** (LFC 2, FDR 5%). This explains the large discrepancy in the numbers originally reported in this analysis above.
+The supplementary table caption is slightly misleading. After downloading the supplementary materials (4 files, containing DE genes, isoforms, introns and exons) and inspecting the files, it immediately became apparent that the numbers stated in the table refer to the number of DE RNA molecules **before filtering** (i.e LFC > 0 , LFC < 0 , pval=0.05). This explains the large discrepancy in the numbers originally reported in this analysis above.
 
 ***
 
-To assess the degree of concordance in each of the 4 analyses, filtering was applied to the supplementary material datasets and compared with our analysis results.  
+To assess the degree of concordance in each of the 4 analyses, filtering (LFC >2 , FDR 5%) was applied to the supplementary material datasets and compared with the results of our analysis.
 
 ## Gene
 
@@ -517,8 +517,6 @@ We report 428 differentially expressed genes in our study (LFC 2, FDR 5%). After
 <p markdown="1" align="center">
   <img src="assets/images/gene_venn.png" alt="gene_venn">
 </p>
-
-***
 
 A dataframe containing summary statistics for differentially expressed genes found in both analyses can be found under [`gene/DE_genes.txt`](https://github.com/BarryDigby/GSE37001/tree/main/gene/DEG.txt). Results have been ordered according to the union of results, thereafter genes with NA values represent the difference between sets.
 
@@ -536,7 +534,7 @@ A dataframe containing summary statistics for differentially expressed transcrip
 
 ## Exons
 
-We report 172 differentially expressed exons in our study (LFC 2, FDR 5%). After applying the same filtering methods to the supplementary exons file, there were 176 differentially expressed transcripts, 27 of which were common amongst the datasets.
+We report 172 differentially expressed exons in our study (LFC 2, FDR 5%). After applying the same filtering methods to the supplementary exons file, there were 176 differentially expressed exons, 27 of which were common amongst the datasets.
 
 <p markdown="1" align="center">
   <img src="assets/images/exon_venn.png" alt="exon_venn">
@@ -548,13 +546,18 @@ A dataframe containing summary statistics for differentially expressed exons fou
 
 ## Introns
 
+We report 964 differentially expressed introns in our study (LFC 2, FDR 5%). After applying the same filtering methods to the supplementary introns file, there were 830 differentially expressed introns, 40 of which were common amongst the datasets.
 
+<p markdown="1" align="center">
+  <img src="assets/images/intron_venn.png" alt="intron_venn">
+</p>
+
+A dataframe containing summary statistics for differentially expressed introns found in both analyses can be found under [`intron/DE_introns.txt`](https://github.com/BarryDigby/GSE37001/tree/main/exon/DE_exons.txt). Results have been ordered according to the union of results, thereafter genes with NA values represent the difference between sets.
 
 
 # R Session
 
 ```R
-Show in New Window
 R version 4.1.0 (2021-05-18)
 Platform: x86_64-pc-linux-gnu (64-bit)
 Running under: Ubuntu 20.04.2 LTS
@@ -564,48 +567,72 @@ BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
 LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
 
 locale:
- [1] LC_CTYPE=en_IE.UTF-8       LC_NUMERIC=C               LC_TIME=en_IE.UTF-8        LC_COLLATE=en_IE.UTF-8     LC_MONETARY=en_IE.UTF-8    LC_MESSAGES=en_IE.UTF-8   
- [7] LC_PAPER=en_IE.UTF-8       LC_NAME=C                  LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=en_IE.UTF-8 LC_IDENTIFICATION=C       
+ [1] LC_CTYPE=en_IE.UTF-8       LC_NUMERIC=C               LC_TIME=en_IE.UTF-8        LC_COLLATE=en_IE.UTF-8    
+ [5] LC_MONETARY=en_IE.UTF-8    LC_MESSAGES=en_IE.UTF-8    LC_PAPER=en_IE.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=en_IE.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
-[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods   base     
+ [1] grid      parallel  stats4    stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] ggpubr_0.4.0                forcats_0.5.1               stringr_1.4.0               purrr_0.3.4                 readr_1.4.0                
- [6] tidyr_1.1.3                 tibble_3.1.2                tidyverse_1.3.1             clusterProfiler_4.0.0       GenomicFeatures_1.44.0     
-[11] PCAtools_2.4.0              ggrepel_0.9.1               ggplot2_3.3.3               pheatmap_1.0.12             gplots_3.1.1               
-[16] rhdf5_2.36.0                tximport_1.20.0             dplyr_1.0.6                 DT_0.18                     apeglm_1.14.0              
-[21] IHW_1.20.0                  biomaRt_2.48.0              rtracklayer_1.52.0          DEXSeq_1.38.0               RColorBrewer_1.1-2         
-[26] AnnotationDbi_1.54.1        DESeq2_1.32.0               SummarizedExperiment_1.22.0 GenomicRanges_1.44.0        GenomeInfoDb_1.28.0        
-[31] IRanges_2.26.0              S4Vectors_0.30.0            MatrixGenerics_1.4.0        matrixStats_0.59.0          Biobase_2.52.0             
-[36] BiocGenerics_0.38.0         BiocParallel_1.26.0        
+ [1] UpSetR_1.4.0                fgsea_1.18.0                ggvenn_0.1.8                ggVennDiagram_1.1.2        
+ [5] devtools_2.4.2              usethis_2.0.1               VennDiagram_1.6.20          futile.logger_1.4.3        
+ [9] rtracklayer_1.52.0          DEXSeq_1.38.0               BiocParallel_1.26.0         ggpubr_0.4.0               
+[13] forcats_0.5.1               stringr_1.4.0               purrr_0.3.4                 readr_1.4.0                
+[17] tidyr_1.1.3                 tibble_3.1.2                tidyverse_1.3.1             clusterProfiler_4.0.0      
+[21] GenomicFeatures_1.44.0      AnnotationDbi_1.54.1        PCAtools_2.4.0              ggrepel_0.9.1              
+[25] ggplot2_3.3.3               pheatmap_1.0.12             RColorBrewer_1.1-2          DESeq2_1.32.0              
+[29] SummarizedExperiment_1.22.0 Biobase_2.52.0              MatrixGenerics_1.4.0        matrixStats_0.59.0         
+[33] GenomicRanges_1.44.0        GenomeInfoDb_1.28.0         IRanges_2.26.0              S4Vectors_0.30.0           
+[37] BiocGenerics_0.38.0         gplots_3.1.1                rhdf5_2.36.0                tximport_1.20.0            
+[41] biomaRt_2.48.0              dplyr_1.0.6                 DT_0.18                     apeglm_1.14.0              
+[45] IHW_1.20.0                 
 
 loaded via a namespace (and not attached):
-  [1] utf8_1.2.1                tidyselect_1.1.1          RSQLite_2.2.7             htmlwidgets_1.5.3         grid_4.1.0                scatterpie_0.1.6         
-  [7] munsell_0.5.0             ScaledMatrix_1.0.0        statmod_1.4.36            withr_2.4.2               colorspace_2.0-1          GOSemSim_2.18.0          
- [13] filelock_1.0.2            knitr_1.33                rstudioapi_0.13           ggsignif_0.6.1            DOSE_3.18.0               slam_0.1-48              
- [19] bbmle_1.0.23.1            GenomeInfoDbData_1.2.6    lpsymphony_1.20.0         hwriter_1.3.2             polyclip_1.10-0           bit64_4.0.5              
- [25] farver_2.1.0              downloader_0.4            coda_0.19-4               vctrs_0.3.8               treeio_1.16.1             generics_0.1.0           
- [31] xfun_0.23                 BiocFileCache_2.0.0       R6_2.5.0                  graphlayouts_0.7.1        rsvd_1.0.5                locfit_1.5-9.4           
- [37] bitops_1.0-7              rhdf5filters_1.4.0        cachem_1.0.5              fgsea_1.18.0              DelayedArray_0.18.0       assertthat_0.2.1         
- [43] BiocIO_1.2.0              scales_1.1.1              ggraph_2.0.5              enrichplot_1.12.0         gtable_0.3.0              beachmat_2.8.0           
- [49] tidygraph_1.2.0           rlang_0.4.11              genefilter_1.74.0         splines_4.1.0             rstatix_0.7.0             lazyeval_0.2.2           
- [55] broom_0.7.6               abind_1.4-5               modelr_0.1.8              BiocManager_1.30.15       yaml_2.2.1                reshape2_1.4.4           
- [61] crosstalk_1.1.1           backports_1.2.1           qvalue_2.24.0             tools_4.1.0               ellipsis_0.3.2            jquerylib_0.1.4          
- [67] Rcpp_1.0.6                plyr_1.8.6                sparseMatrixStats_1.4.0   progress_1.2.2            zlibbioc_1.38.0           RCurl_1.98-1.3           
- [73] prettyunits_1.1.1         viridis_0.6.1             cowplot_1.1.1             haven_2.4.1               fs_1.5.0                  magrittr_2.0.1           
- [79] data.table_1.14.0         openxlsx_4.2.3            DO.db_2.9                 reprex_2.0.0              mvtnorm_1.1-2             hms_1.1.0                
- [85] patchwork_1.1.1           xtable_1.8-4              XML_3.99-0.6              rio_0.5.26                emdbook_1.3.12            readxl_1.3.1             
- [91] gridExtra_2.3             compiler_4.1.0            bdsmatrix_1.3-4           KernSmooth_2.23-20        crayon_1.4.1              shadowtext_0.0.8         
- [97] htmltools_0.5.1.1         geneplotter_1.70.0        aplot_0.0.6               lubridate_1.7.10          DBI_1.1.1                 tweenr_1.0.2             
-[103] dbplyr_2.1.1              MASS_7.3-54               rappdirs_0.3.3            car_3.0-10                Matrix_1.3-4              cli_2.5.0                
-[109] igraph_1.2.6              pkgconfig_2.0.3           rvcheck_0.1.8             GenomicAlignments_1.28.0  foreign_0.8-81            numDeriv_2016.8-1.1      
-[115] xml2_1.3.2                ggtree_3.0.2              annotate_1.70.0           bslib_0.2.5.1             dqrng_0.3.0               XVector_0.32.0           
-[121] rvest_1.0.0               digest_0.6.27             Biostrings_2.60.1         cellranger_1.1.0          fastmatch_1.1-0           tidytree_0.3.4           
-[127] DelayedMatrixStats_1.14.0 restfulr_0.0.13           curl_4.3.1                Rsamtools_2.8.0           gtools_3.9.2              rjson_0.2.20             
-[133] lifecycle_1.0.0           nlme_3.1-152              jsonlite_1.7.2            Rhdf5lib_1.14.1           carData_3.0-4             viridisLite_0.4.0        
-[139] fansi_0.5.0               pillar_1.6.1              lattice_0.20-44           KEGGREST_1.32.0           fastmap_1.1.0             httr_1.4.2               
-[145] survival_3.2-11           GO.db_3.13.0              glue_1.4.2                zip_2.2.0                 fdrtool_1.2.16            png_0.1-7                
-[151] bit_4.0.4                 sass_0.4.0                ggforce_0.3.3             stringi_1.6.2             blob_1.2.1                BiocSingular_1.8.1       
-[157] caTools_1.18.2            memoise_2.0.0             irlba_2.3.3               ape_5.5                  
+  [1] rappdirs_0.3.3            coda_0.19-4               bit64_4.0.5               knitr_1.33               
+  [5] irlba_2.3.3               DelayedArray_0.18.0       data.table_1.14.0         hwriter_1.3.2            
+  [9] KEGGREST_1.32.0           RCurl_1.98-1.3            generics_0.1.0            ScaledMatrix_1.0.0       
+ [13] callr_3.7.0               lambda.r_1.2.4            cowplot_1.1.1             RSQLite_2.2.7            
+ [17] shadowtext_0.0.8          proxy_0.4-26              bit_4.0.4                 enrichplot_1.12.0        
+ [21] xml2_1.3.2                lubridate_1.7.10          assertthat_0.2.1          viridis_0.6.1            
+ [25] xfun_0.23                 hms_1.1.0                 jquerylib_0.1.4           evaluate_0.14            
+ [29] fansi_0.5.0               restfulr_0.0.13           progress_1.2.2            caTools_1.18.2           
+ [33] dbplyr_2.1.1              readxl_1.3.1              igraph_1.2.6              DBI_1.1.1                
+ [37] geneplotter_1.70.0        htmlwidgets_1.5.3         ellipsis_0.3.2            crosstalk_1.1.1          
+ [41] backports_1.2.1           annotate_1.70.0           sparseMatrixStats_1.4.0   vctrs_0.3.8              
+ [45] remotes_2.4.0             abind_1.4-5               cachem_1.0.5              withr_2.4.2              
+ [49] RVenn_1.1.0               ggforce_0.3.3             bdsmatrix_1.3-4           GenomicAlignments_1.28.0
+ [53] treeio_1.16.1             fdrtool_1.2.16            prettyunits_1.1.1         DOSE_3.18.0              
+ [57] ape_5.5                   lazyeval_0.2.2            crayon_1.4.1              genefilter_1.74.0        
+ [61] labeling_0.4.2            units_0.7-2               pkgconfig_2.0.3           slam_0.1-48              
+ [65] tweenr_1.0.2              pkgload_1.2.1             nlme_3.1-152              rlang_0.4.11             
+ [69] lifecycle_1.0.0           downloader_0.4            filelock_1.0.2            BiocFileCache_2.0.0      
+ [73] modelr_0.1.8              rsvd_1.0.5                rprojroot_2.0.2           cellranger_1.1.0         
+ [77] polyclip_1.10-0           Matrix_1.3-4              aplot_0.0.6               carData_3.0-4            
+ [81] lpsymphony_1.20.0         Rhdf5lib_1.14.1           reprex_2.0.0              processx_3.5.2           
+ [85] png_0.1-7                 viridisLite_0.4.0         rjson_0.2.20              bitops_1.0-7             
+ [89] KernSmooth_2.23-20        rhdf5filters_1.4.0        Biostrings_2.60.1         blob_1.2.1               
+ [93] DelayedMatrixStats_1.14.0 classInt_0.4-3            qvalue_2.24.0             rstatix_0.7.0            
+ [97] ggsignif_0.6.1            beachmat_2.8.0            scales_1.1.1              memoise_2.0.0            
+[101] magrittr_2.0.1            plyr_1.8.6                zlibbioc_1.38.0           compiler_4.1.0           
+[105] scatterpie_0.1.6          dqrng_0.3.0               tinytex_0.32              BiocIO_1.2.0             
+[109] bbmle_1.0.23.1            Rsamtools_2.8.0           cli_2.5.0                 XVector_0.32.0           
+[113] ps_1.6.0                  patchwork_1.1.1           formatR_1.11              MASS_7.3-54              
+[117] tidyselect_1.1.1          stringi_1.6.2             emdbook_1.3.12            yaml_2.2.1               
+[121] GOSemSim_2.18.0           BiocSingular_1.8.1        locfit_1.5-9.4            sass_0.4.0               
+[125] fastmatch_1.1-0           tools_4.1.0               rio_0.5.26                rstudioapi_0.13          
+[129] foreign_0.8-81            gridExtra_2.3             farver_2.1.0              ggraph_2.0.5             
+[133] digest_0.6.27             rvcheck_0.1.8             BiocManager_1.30.15       Rcpp_1.0.6               
+[137] car_3.0-10                broom_0.7.6               httr_1.4.2                sf_1.0-0                 
+[141] colorspace_2.0-1          rvest_1.0.0               XML_3.99-0.6              fs_1.5.0                 
+[145] splines_4.1.0             statmod_1.4.36            tidytree_0.3.4            graphlayouts_0.7.1       
+[149] sessioninfo_1.1.1         xtable_1.8-4              futile.options_1.0.1      jsonlite_1.7.2           
+[153] ggtree_3.0.2              tidygraph_1.2.0           testthat_3.0.2            R6_2.5.0                 
+[157] pillar_1.6.1              htmltools_0.5.1.1         glue_1.4.2                fastmap_1.1.0            
+[161] class_7.3-19              pkgbuild_1.2.0            mvtnorm_1.1-2             utf8_1.2.1               
+[165] lattice_0.20-44           bslib_0.2.5.1             numDeriv_2016.8-1.1       curl_4.3.1               
+[169] gtools_3.9.2              zip_2.2.0                 GO.db_3.13.0              openxlsx_4.2.3           
+[173] survival_3.2-11           rmarkdown_2.8             desc_1.3.0                munsell_0.5.0            
+[177] e1071_1.7-7               DO.db_2.9                 GenomeInfoDbData_1.2.6    haven_2.4.1              
+[181] reshape2_1.4.4            gtable_0.3.0             
 ```
