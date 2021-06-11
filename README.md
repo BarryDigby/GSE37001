@@ -498,13 +498,13 @@ saveRDS(down_dex, file="/data/github/GSE37001/intron/DEXSeq_introns_downregulate
 
 The analsyis yielded 964 differentially expressed introns, which was less than the authors produced (2672). The authors were not transparent in their methods used to count introns (the dreaded 'in-house script') however I am reasonably confident that my methods in generating intron counts were correct. Interestingly the authors decided to use `DESeq` for the analysis over `DEXSeq`. They did not state why this was the case, and strikes me as unusual. Therefore this section of the analysis is left open to interpretation and clouds reproducibility.
 
-# Validity of supplementary materials
+# Comparison of results
 
 <p markdown="1" align="center">
   <img src="assets/images/supp_table.png" alt="de_rnas">
 </p>
 
-The table caption is very misleading. After downloading the supplementary materials (4 files, containing DE genes, isoforms, introns and exons) and inspecting the files, it immediately became apparent that the numbers stated in the table refer to the number of DE RNA molecules **before filtering** (LFC 2, FDR 5%). This explains the large discrepancy in the numbers originally reported in this analysis above.
+The supplementary table caption is very misleading. After downloading the supplementary materials (4 files, containing DE genes, isoforms, introns and exons) and inspecting the files, it immediately became apparent that the numbers stated in the table refer to the number of DE RNA molecules **before filtering** (LFC 2, FDR 5%). This explains the large discrepancy in the numbers originally reported in this analysis above.
 
 ***
 
@@ -512,11 +512,29 @@ To assess the degree of concordance in each of the 4 analyses, filtering was app
 
 ## Gene
 
-We report 428 differentially expressed genes in our study. After applying the appropriate filtering to the supplementary DE_gene file, there were 470 differentially expressed genes, 336 of which were shared amongst the datasets.
+We report 428 differentially expressed genes in our study (LFC 2, FDR 5%). After applying the same filtering methods to the supplementary DE_gene file, there were 470 differentially expressed genes, 336 of which were common amongst the datasets.
 
 <p markdown="1" align="center">
   <img src="assets/images/gene_venn.png" alt="gene_venn">
 </p>
+
+***
+
+A dataframe containing summary statistics for differentially expressed genes found in both analyses can be found under [`gene/DE_genes.txt`](https://github.com/BarryDigby/GSE37001/tree/main/gene/DEG.txt). Results have been ordered according to the union of results, thereafter genes with NA values represent the difference between sets.
+
+## Isoform
+
+We report 1600 differentially expressed transcripts in our study (LFC 2, FDR 5%). After applying the same filtering methods to the supplementary DE_isoforms file, there were 2020 differentially expressed transcripts, 271 of which were common amongst the datasets.
+
+<p markdown="1" align="center">
+  <img src="assets/images/isoform_venn.png" alt="isoform_venn">
+</p>
+
+A dataframe containing summary statistics for differentially expressed transcripts found in both analyses can be found under [`isoform/DE_isoforms.txt`](https://github.com/BarryDigby/GSE37001/tree/main/isoform/DE_isoforms.txt). Results have been ordered according to the union of results, thereafter genes with NA values represent the difference between sets.
+
+> Please note that lnFC values from `Cufflinks` of `1.79769e+308` were converted to `Inf` to stay consistent with the master gene set.
+
+
 
 # R Session
 
